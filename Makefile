@@ -3,10 +3,11 @@ BIN_DIR = $(VENV_NAME)/bin
 
 PYTHON = $(BIN_DIR)/python3
 PIP = $(BIN_DIR)/pip3
+MATURIN = $(BIN_DIR)/maturin
 
 CHESS_DIR=chess_engine
-MATURIN_CARGO=Cargo.toml
-WASM_PACK_CARGO=Cargo_WASM.toml
+CHESS_PY_DIR=chess_engine_python_bindings
+CHESS_WASM_DIR=chess_engine_wasm_bindings
 
 UNAME_S = $(shell uname -s)
 
@@ -25,9 +26,9 @@ setup $(VENV_NAME)/bin/activate: requirements.txt
 	
 	$(CARGO_ENV) cargo install $(CARGO_OPTS) wasm-pack
 	
-	cd $(CHESS_DIR) && maturin develop -m $(MATURIN_CARGO)
+	$(MATURIN) develop -m $(CHESS_PY_DIR)/Cargo.toml
 
-clean:
+uninstall:
 	rm -rf __pycache__ $(VENV_NAME)
 
-.PHONY: clean setup
+.PHONY: uninstall setup
