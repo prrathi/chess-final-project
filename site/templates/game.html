@@ -12,7 +12,10 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <script src="https://use.fontawesome.com/a068fc1f09.js"></script> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <title>Python Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css"
+        integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Python Game</title>
 </head>
 <style>
     .center {
@@ -61,19 +64,22 @@
         margin-top: 0;
         height: 100%;
         width: 100%;
-        
+
     }
 
     .black-piece {
         color: rgb(54, 51, 51);
     }
+
     .square:hover {
         border: 2px solid red;
         cursor: pointer;
     }
+
     .white-piece {
         color: rgb(233, 227, 227);
     }
+
     i {
         text-shadow: 0 0 3px #000;
         /* background: red; */
@@ -83,8 +89,9 @@
 
 <body>
     <div class="center" id="popup" style='background-color: #FFE4C4; color: black'>
-        <h1><b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4" id="username"> <br><br>
-            <button style="background-color:#FFE4C4; color:black" onclick=connectToGame()> PLAY!!!
+        <h1><b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4"
+                    id="username"> <br><br>
+                <button style="background-color:#FFE4C4; color:black" onclick=connectToGame()> PLAY!!!
             </b> </h1>
     </div>
     <div id="content">
@@ -99,55 +106,55 @@
     </div>
     <script>
         function initializeBoard() {
-    let squares = new Array(8);
-    for (let i = 0; i < 8; i++){
-        let row = new Array(8);
-        for (let j = 0; j < 8; j++){
-            let colorsquare = '';
-            let typesquare = '';
-            if(i === 0 || i === 1){
-                colorsquare = 'black';
-            } else if(i === 6 || i === 7){
-                colorsquare = 'white';
-            }
-            if(i === 1 || i === 6){
-                typesquare = 'pawn';
-            } else if(i === 0 || i === 7){
-                if(j === 0 || j === 7){
-                    typesquare = 'rook';
-                } else if(j === 1 || j === 6){
-                    typesquare = 'knight';
-                } else if(j === 2 || j === 5){
-                    typesquare = 'bishop';
-                } else if(j === 3){
-                    typesquare = 'queen';
-                } else{
-                    typesquare = 'king';
+            let squares = new Array(8);
+            for (let i = 0; i < 8; i++) {
+                let row = new Array(8);
+                for (let j = 0; j < 8; j++) {
+                    let colorsquare = '';
+                    let typesquare = '';
+                    if (i === 0 || i === 1) {
+                        colorsquare = 'black';
+                    } else if (i === 6 || i === 7) {
+                        colorsquare = 'white';
+                    }
+                    if (i === 1 || i === 6) {
+                        typesquare = 'pawn';
+                    } else if (i === 0 || i === 7) {
+                        if (j === 0 || j === 7) {
+                            typesquare = 'rook';
+                        } else if (j === 1 || j === 6) {
+                            typesquare = 'knight';
+                        } else if (j === 2 || j === 5) {
+                            typesquare = 'bishop';
+                        } else if (j === 3) {
+                            typesquare = 'queen';
+                        } else {
+                            typesquare = 'king';
+                        }
+                    }
+                    row[j] = { color: colorsquare, type: typesquare };
                 }
+                squares[i] = row;
             }
-            row[j] = {color : colorsquare, type: typesquare};
+            return squares;
         }
-        squares[i] = row;
-    }
-    return squares;
-}
-    let squares = initializeBoard();
-    // 
+        let squares = initializeBoard();
+        // 
         // this will run on page start to connect to the room websocket
         function render() {
-    var root = document.getElementById("board");
-    var childNodes = root.children;
-    for (var i = 0; i < 64; i++) {
-        const row = Math.floor(i / 8);
-        const col = i % 8;
-        const data = squares[row][col];
-        if(squares[row][col].type != ''){
-            childNodes[i].innerHTML = `<i class="fas ${squares[row][col].color}-piece piece fa-chess-${squares[row][col].type}"></i>`;
-        } else {
-            childNodes[i].innerHTML = ''
+            var root = document.getElementById("board");
+            var childNodes = root.children;
+            for (var i = 0; i < 64; i++) {
+                const row = Math.floor(i / 8);
+                const col = i % 8;
+                const data = squares[row][col];
+                if (squares[row][col].type != '') {
+                    childNodes[i].innerHTML = `<i class="fas ${squares[row][col].color}-piece piece fa-chess-${squares[row][col].type}"></i>`;
+                } else {
+                    childNodes[i].innerHTML = ''
+                }
+            }
         }
-    }
-}
         var socket = io.connect();
         const room = window.location.href.split('/').slice(-1)[0] // {{ data.room_id }}
         console.log(`room number is; ${room}`)
@@ -203,7 +210,7 @@
         function makeMove(to, from) {
             var [fromRow, fromCol] = getRowCol(from)
             var [toRow, toCol] = getRowCol(to)
-            socket.emit('game', {room, data: {type: 'move', fromRow, fromCol, toRow, toCol }})
+            socket.emit('game', { room, data: { type: 'move', fromRow, fromCol, toRow, toCol } })
         }
 
         function makeHTMLBoard() {
@@ -242,15 +249,15 @@
             status.innerHTML += data + "<br>";
         });
 
-        socket.on('data', function(data) {
+        socket.on('data', function (data) {
             console.log(data)
             if (data.type == 'init') {
                 if (data.count == 1) {
                     playerColor = 'white'
                 } else if (data.count == 2) {
                     playerColor = 'black'
-                    socket.emit('game', {room, data: {type: 'start'} })
-                    socket.emit('status', {room, message: 'Game is ready to start, player one go'})
+                    socket.emit('game', { room, data: { type: 'start' } })
+                    socket.emit('status', { room, message: 'Game is ready to start, player one go' })
                 } else {
                     playerColor = 'spectator'
                 }
@@ -258,18 +265,18 @@
             }
         })
 
-        socket.on('game', function(data) {
+        socket.on('game', function (data) {
             console.log('Game update =>', data)
             if (data.type == 'start') {
                 gameStart = true;
             } else if (data.type == 'move') {
                 currentTurn = currentTurn == 'white' ? 'black' : 'white';
                 if (currentTurn == playerColor) {
-                    socket.emit('status', {room, message: `${currentTurn} it is now your turn`})
+                    socket.emit('status', { room, message: `${currentTurn} it is now your turn` })
                 }
                 let { fromRow, fromCol, toRow, toCol } = data;
                 squares[toRow][toCol] = squares[fromRow][fromCol]
-                squares[fromRow][fromCol] = {color: 'white', type: ''}
+                squares[fromRow][fromCol] = { color: 'white', type: '' }
                 render()
             }
         })

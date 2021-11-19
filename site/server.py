@@ -10,11 +10,14 @@ app.config['SECRET_KEY'] = 'super_secret'
 socketio = SocketIO(app)
 
 PLAYER_COUNTER = {}
+
+
 @socketio.on('move-receiver')
 def on_move(data):
     # Make sure the move works
     # If it works,
     emit('move-made')
+
 
 @socketio.on('join')
 def on_join(data):
@@ -30,12 +33,16 @@ def on_join(data):
 
     emit('status', username + ' has entered the room.', to=room)
 
-    emit('data', {'type': 'init', 'count': PLAYER_COUNTER[room] })
+    emit('data', {'type': 'init', 'count': PLAYER_COUNTER[room]})
+
+
 @socketio.on('status')
 def on_status(data):
     print('on_status:', data)
     room = data['room']
     emit('status', data['message'], to=room)
+
+
 @socketio.on('leave')
 def on_leave(data):
     username = data['username']
@@ -45,22 +52,30 @@ def on_leave(data):
     leave_room(room)
     emit('status', username + ' has left the room.', to=room)
 
+
 @socketio.on('game')
 def on_game(data):
     room = data['room']
     data = data['data']
     emit('game', data, to=room)
+
+
 @socketio.on('connect')
 def test_connect():
     emit('status', ' you have connected')
+
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
+
 @app.route('/game/<room_id>')
 def game(room_id):
-    data = { 'room_id': room_id }
+    data = {'room_id': room_id}
     return render_template('game.html', data=data)
+
+
 @app.route('/about')
 def about():
     return render_template('about.html')
