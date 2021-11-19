@@ -11,30 +11,55 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
 </head>
+<style>
+  ::placeholder {
+    color: dimgray;
+  }
+</style>
 
-<body style = "background-color:#4682B4">
-  <script type="text/javascript" charset="utf-8">
-    function joinroom() {
-      // get code
+<body style="background-color:#4682B4">
 
-      // redirect to that page
-    }
-
-    function createroom() {
-      // randomly generate a number
-
-      // redirect to that page
-    }
-  </script>
-
-
-  <center>
-    <div class="jumbotron" style = "background-color:#FFE4C4">
-      <h1>Play Chess!</h1>
-      <p>Enter A Join Code To Join A Game, Or Create Your Own!</p>
+  <div class="jumbotron" style="background-color:#FFE4C4"><center>
+    <h1>Play Chess!</h1>
+    <p>Enter A Join Code To Join A Game, Or Create Your Own!</p>
+  </div></center>
+  <h1><center><button style="margin:5px; background: #FFE4C4;color:#4682B4" id = "join-room" onclick="makepopup()">Join A Room!</button>
+    <div id="code-popup">
+      <input type="text" style="margin:5px; background: #FFE4C4; color: #4682B4" id="code-input"
+        placeholder="Input Your Code!">
+      <br><button style="margin:5px; background: #FFE4C4; color: #4682B4" onclick="oncodesubmit()"> Submit</button>
     </div>
-  <h1><button style="margin:5px; background: #FFE4C4;color:#4682B4" onclick="joinroom()">Join A Room!
-    <button style="margin:5px; background: #FFE4C4" onclick="createroom()">Make A Room!
+    <button style="margin:5px; background: #FFE4C4" id = "make-room" onclick="createroom()">Make A Room! </button></center></h1>
+
+
+      <script type="text/javascript" charset="utf-8">
+        const code_popup = document.getElementById('code-popup')
+        const make_room = document.getElementById('make-room')
+        const join_room = document.getElementById('join-room')
+        code_popup.style.display = 'none'
+        function makepopup() {
+          // get code
+          code_popup.style.display = 'block';
+          make_room.style.display = 'none';
+          join_room.style.display = 'none';
+        }
+        function oncodesubmit() {
+          const code = document.getElementById('code-input').value;
+          if (code.length > 0) {
+            document.location.href = `/game/${code}`
+          }
+          // redirect to that page
+        }
+
+        function createroom() {
+          // randomly generate a number
+          const code = `${Math.floor(Math.random() * (999999 - 100000) + 100000)}`;
+
+          document.location.href = `/game/${code}`
+          // redirect to that page
+        }
+      </script>
+
 </body>
 
 </html>

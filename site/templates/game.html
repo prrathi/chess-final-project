@@ -68,7 +68,7 @@
         color: rgb(54, 51, 51);
     }
     .square:hover {
-        outline: 2px solid red;
+        border: 2px solid red;
         cursor: pointer;
     }
     .white-piece {
@@ -93,6 +93,8 @@
         what a great chess board
         <!-- TODO give me the board here -->
         <div id="board"></div>
+
+        <div id="status-text"></div>
     </div>
     </div>
     <script>
@@ -145,7 +147,8 @@
     }
 }
         var socket = io.connect();
-        const room = 123 // {{ data.room_id }}
+        const room = window.location.href.split('/').slice(-1)[0] // {{ data.room_id }}
+        console.log(`room number is; ${room}`)
         const _popup = document.getElementById("popup")
         const _content = document.getElementById("content")
 
@@ -204,9 +207,8 @@
             }
         }
         function joinroom() {
-            var tst = document.getElementById("room")
-            console.log(tst.value)
-            socket.emit('join', { 'username': 'b_user', 'room': tst.value });
+            const username = document.getElementById("username").value
+            socket.emit('join', { 'username': username, 'room': room });
         }
 
         function createroom() {
@@ -218,12 +220,21 @@
         // socket.emit('move-receiver', { 'username': 'a_user', 'room': roomn });
         socket.on('status', function (data) {
             console.log(data)
+            const status = document.getElementById('status-text')
+            status.innerHTML += data + "<br>";
         });
-
+        socket.on('data', function(data) {
+            console.log(data)
+            console.log(socket.rooms[room])
+            let roomSize = io.sockets.adapter.rooms[room].length
+            console.log(roomSize)
+            if (data.type == 'init') {
+                // determine if player will be white or black
+            }
+        })
         socket.on('move-made', function (data) {
             console.log(data)
         });
-
 
     </script>
 

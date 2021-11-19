@@ -14,13 +14,16 @@ def on_move(data):
     # Make sure the move works
     # If it works,
     emit('move-made')
+
 @socketio.on('join')
 def on_join(data):
     print(data)
     username = data['username']
     room = data['room']
     join_room(room)
-    emit('status', username + ' has entered the room.', to=room)
+    emit('info', username + ' has entered the room.', to=room)
+
+    emit('data', {'type': 'init' })
 
 @socketio.on('leave')
 def on_leave(data):
@@ -31,7 +34,7 @@ def on_leave(data):
     
 @socketio.on('connect')
 def test_connect():
-    emit('after connect',  {'data':'Lets dance'})
+    emit('status', ' you have connected')
 @app.route('/')
 def index():
     return render_template('index.html')
