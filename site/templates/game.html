@@ -143,7 +143,9 @@
         const data = squares[row][col];
         if(squares[row][col].type != ''){
             childNodes[i].innerHTML = `<i class="fas ${squares[row][col].color}-piece piece fa-chess-${squares[row][col].type}"></i>`;
-        } //<i class="fa-solid fa-chess-king-piece"></i
+        } else {
+            childNodes[i].innerHTML = ''
+        }
     }
 }
         var socket = io.connect();
@@ -157,7 +159,9 @@
         console.log(room)
         let from = null;
         let to = null;
-
+        let playerColor;
+        let gameStart = false;
+        let currentTurn = 'white';
         function connectToGame() {
             const username = document.getElementById("username").value
             socket.emit('join', { username, room })
@@ -168,8 +172,18 @@
             makeHTMLBoard()
             render()
         }
-
+        function getRowCol(node) {
+            for (var cls of node.classList) {
+                if (!isNaN(cls)) {
+                    var n = +cls;
+                    return [Math.floor(n / 8), n % 8]
+                }
+            }
+        }
         function onClickSquare(event) {
+            if (!gameStart || playerColor == 'spectator' || currentTurn != playerColor) {
+                return;
+            }
             let square;
             if (!event.target.classList.contains("square")) {
                 square = event.target.parentNode
@@ -183,11 +197,15 @@
                 console.log(from)
             } else if (from !== null) {
                 console.log('moving stuff')
-                to = square;
-                to.innerHTML = from.innerHTML;
-                from.innerHTML = '';
+                makeMove(square, from)
             }
         }
+        function makeMove(to, from) {
+            var [fromRow, fromCol] = getRowCol(from)
+            var [toRow, toCol] = getRowCol(to)
+            socket.emit('game', {room, data: {type: 'move', fromRow, fromCol, toRow, toCol }})
+        }
+
         function makeHTMLBoard() {
             const root = document.getElementById("board")
             for (var i = 0; i < 64; i++) {
@@ -223,13 +241,36 @@
             const status = document.getElementById('status-text')
             status.innerHTML += data + "<br>";
         });
+
         socket.on('data', function(data) {
             console.log(data)
-            console.log(socket.rooms[room])
-            let roomSize = io.sockets.adapter.rooms[room].length
-            console.log(roomSize)
             if (data.type == 'init') {
+                if (data.count == 1) {
+                    playerColor = 'white'
+                } else if (data.count == 2) {
+                    playerColor = 'black'
+                    socket.emit('game', {room, data: {type: 'start'} })
+                    socket.emit('status', {room, message: 'Game is ready to start, player one go'})
+                } else {
+                    playerColor = 'spectator'
+                }
                 // determine if player will be white or black
+            }
+        })
+
+        socket.on('game', function(data) {
+            console.log('Game update =>', data)
+            if (data.type == 'start') {
+                gameStart = true;
+            } else if (data.type == 'move') {
+                currentTurn = currentTurn == 'white' ? 'black' : 'white';
+                if (currentTurn == playerColor) {
+                    socket.emit('status', {room, message: `${currentTurn} it is now your turn`})
+                }
+                let { fromRow, fromCol, toRow, toCol } = data;
+                squares[toRow][toCol] = squares[fromRow][fromCol]
+                squares[fromRow][fromCol] = {color: 'white', type: ''}
+                render()
             }
         })
         socket.on('move-made', function (data) {
