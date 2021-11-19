@@ -35,7 +35,11 @@
     }
 
     .black {
-        background: black;
+        background: green;
+    }
+
+    .white {
+        background: beige;
     }
 
     #board {
@@ -71,6 +75,7 @@
         color: rgb(233, 227, 227);
     }
     i {
+        text-shadow: 0 0 3px #000;
         /* background: red; */
         font-size: 20px;
     }
@@ -189,6 +194,8 @@
                 console.log(row)
                 if (row % 2 == i % 2) {
                     square.classList.add("black")
+                } else {
+                    square.classList.add("white")
                 }
                 square.classList.add(`${i}`)
                 square.addEventListener('click', onClickSquare, false)
