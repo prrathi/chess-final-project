@@ -38,7 +38,7 @@
     }
 
     .black {
-        background: green;
+        background: #4682B4;
     }
 
     .white {
@@ -85,20 +85,30 @@
         /* background: red; */
         font-size: 55px;
     }
+    body {
+        width: 100%;
+    }
 </style>
 
 <body>
     <div class="center" id="popup" style='background-color: #FFE4C4; color: black'>
-        <h1><b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4"
-                    id="username"> <br><br>
+        <center>
+
+            <h1><b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4"
+                id="username"> <br><br>
                 <button style="background-color:#FFE4C4; color:black" onclick=connectToGame()> PLAY!!!
-            </b> </h1>
+                </b> </h1>
+        </center>
     </div>
     <div id="content">
-        <!-- TODO give me the board here -->
-        <div id="board"></div>
+        <center>
 
-        <div id="status-text"></div>
+            <!-- TODO give me the board here -->
+            <h1 id="game-code"></h1>
+            <div id="board"></div>
+            
+            <div id="status-text"></div>
+        </center>
     </div>
     </div>
     <script>
@@ -155,6 +165,8 @@
         var socket = io.connect();
         const room = window.location.href.split('/').slice(-1)[0] // {{ data.room_id }}
         console.log(`room number is; ${room}`)
+
+        document.getElementById("game-code").innerHTML = `Game code: ${room}`
         const _popup = document.getElementById("popup")
         const _content = document.getElementById("content")
 
