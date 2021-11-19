@@ -63,7 +63,7 @@
     .black-piece {
         color: rgb(54, 51, 51);
     }
-    .piece:hover {
+    .square:hover {
         outline: 2px solid red;
         cursor: pointer;
     }
@@ -147,6 +147,8 @@
         _popup.style.display = 'block';
         _content.style.display = 'none';
         console.log(room)
+        let from = null;
+        let to = null;
 
         function connectToGame() {
             const username = document.getElementById("username").value
@@ -159,6 +161,25 @@
             render()
         }
 
+        function onClickSquare(event) {
+            let square;
+            if (!event.target.classList.contains("square")) {
+                square = event.target.parentNode
+            } else {
+                square = event.target
+            }
+            console.log('click', square)
+            if (square.hasChildNodes()) {
+                console.log('clicked piece')
+                from = square;
+                console.log(from)
+            } else if (from !== null) {
+                console.log('moving stuff')
+                to = square;
+                to.innerHTML = from.innerHTML;
+                from.innerHTML = '';
+            }
+        }
         function makeHTMLBoard() {
             const root = document.getElementById("board")
             for (var i = 0; i < 64; i++) {
@@ -170,7 +191,7 @@
                     square.classList.add("black")
                 }
                 square.classList.add(`${i}`)
-
+                square.addEventListener('click', onClickSquare, false)
                 // row.appendChild(square)
                 root.appendChild(square)
             }
