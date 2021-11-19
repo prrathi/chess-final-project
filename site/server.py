@@ -9,6 +9,11 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'super_secret'
 socketio = SocketIO(app)
 
+@socketio.on('move-receiver')
+def on_move(data):
+    # Make sure the move works
+    # If it works,
+    emit('move-made')
 @socketio.on('join')
 def on_join(data):
     print(data)
@@ -31,7 +36,10 @@ def test_connect():
 def index():
     return render_template('index.html')
 
-
+@app.route('/game/<room_id>')
+def game(room_id):
+    data = { 'room_id': room_id }
+    return render_template('game.html', data=data)
 @app.route('/about')
 def about():
     return render_template('about.html')

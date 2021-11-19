@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Multiplayer Chess</title>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"
-      integrity="sha512-nYuHvSAhY5lFZ4ixSViOwsEKFvlxHMU2NHts1ILuJgOS6ptUmAGt/0i5czIgMOahKZ6JN84YFDA+mCdky7dD8A=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
-  </head>
-  <body>
-    <script type="text/javascript" charset="utf-8">
 
-    </script>
-    <script>
-      var socket = io.connect();
-      function joinroom() {
-        var tst = document.getElementById("room")
-        console.log(tst.value)
-        socket.emit('join', {'username': 'b_user', 'room': tst.value});
-      }
-      function createroom() {
-        var roomn = `${Math.floor(Math.random() * 100)}`
-        console.log(roomn)
-        socket.emit('join', {'username': 'a_user', 'room': roomn});
-      }
-      socket.on('status', function (data) {
-        console.log(data)
-      });
-    </script>
-    <p>Hello world</p>
-    <input type="text" id="room">Join room
-    <button onclick="joinroom()">go
-    <button onclick="createroom()">make room
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multiplayer Chess</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+</head>
+
+<body style = "background-color:#4682B4">
+  <script type="text/javascript" charset="utf-8">
+    function joinroom() {
+      // get code
+
+      // redirect to that page
+    }
+
+    function createroom() {
+      // randomly generate a number
+
+      // redirect to that page
+    }
+  </script>
+
+
+  <center>
+    <div class="jumbotron" style = "background-color:#FFE4C4">
+      <h1>Play Chess!</h1>
+      <p>Enter A Join Code To Join A Game, Or Create Your Own!</p>
+    </div>
+  <h1><button style="margin:5px; background: #FFE4C4;color:#4682B4" onclick="joinroom()">Join A Room!
+    <button style="margin:5px; background: #FFE4C4" onclick="createroom()">Make A Room!
+</body>
+
 </html>

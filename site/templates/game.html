@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"
+        integrity="sha512-nYuHvSAhY5lFZ4ixSViOwsEKFvlxHMU2NHts1ILuJgOS6ptUmAGt/0i5czIgMOahKZ6JN84YFDA+mCdky7dD8A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <script src="https://use.fontawesome.com/a068fc1f09.js"></script> -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer" />    <title>Python Game</title>
+</head>
+<style>
+    .center {
+        margin: 0;
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        -ms-transform: translate(-50%, -50%);
+        transform: translate(-50%, -50%);
+        font-family: 'Courier New', monospace;
+    }
+
+    .square {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex: 1 0 12%;
+        width: 50px;
+        height: 50px;
+    }
+
+    .black {
+        background: black;
+    }
+
+    #board {
+        width: 400px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        height: 100vh;
+    }
+
+    #popup {
+        margin-top: 0;
+        height: 100%;
+        width: 100%;
+        
+    }
+
+    .black-piece {
+        color: rgb(54, 51, 51);
+    }
+    .piece:hover {
+        outline: 2px solid red;
+        cursor: pointer;
+    }
+    .white-piece {
+        color: rgb(233, 227, 227);
+    }
+    i {
+        /* background: red; */
+        font-size: 20px;
+    }
+</style>
+
+<body>
+    <div class="center" id="popup" style='background-color: #FFE4C4; color: black'>
+        <h1><b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4" id="username"> <br><br>
+            <button style="background-color:#FFE4C4; color:black" onclick=connectToGame()> PLAY!!!
+            </b> </h1>
+    </div>
+    <div id="content">
+        <i class="fas fa-chess-rook"></i>
+        <i class="fas fa-chess-rook"></i>
+        what a great chess board
+        <!-- TODO give me the board here -->
+        <div id="board"></div>
+    </div>
+    </div>
+    <script>
+        function initializeBoard() {
+    let squares = new Array(8);
+    for (let i = 0; i < 8; i++){
+        let row = new Array(8);
+        for (let j = 0; j < 8; j++){
+            let colorsquare = '';
+            let typesquare = '';
+            if(i === 0 || i === 1){
+                colorsquare = 'black';
+            } else if(i === 6 || i === 7){
+                colorsquare = 'white';
+            }
+            if(i === 1 || i === 6){
+                typesquare = 'pawn';
+            } else if(i === 0 || i === 7){
+                if(j === 0 || j === 7){
+                    typesquare = 'rook';
+                } else if(j === 1 || j === 6){
+                    typesquare = 'knight';
+                } else if(j === 2 || j === 5){
+                    typesquare = 'bishop';
+                } else if(j === 3){
+                    typesquare = 'queen';
+                } else{
+                    typesquare = 'king';
+                }
+            }
+            row[j] = {color : colorsquare, type: typesquare};
+        }
+        squares[i] = row;
+    }
+    return squares;
+}
+    let squares = initializeBoard();
+    // 
+        // this will run on page start to connect to the room websocket
+        function render() {
+    var root = document.getElementById("board");
+    var childNodes = root.children;
+    for (var i = 0; i < 64; i++) {
+        const row = Math.floor(i / 8);
+        const col = i % 8;
+        const data = squares[row][col];
+        if(squares[row][col].type != ''){
+            childNodes[i].innerHTML = `<i class="fas ${squares[row][col].color}-piece piece fa-chess-${squares[row][col].type}"></i>`;
+        } //<i class="fa-solid fa-chess-king-piece"></i
+    }
+}
+        var socket = io.connect();
+        const room = 123 // {{ data.room_id }}
+        const _popup = document.getElementById("popup")
+        const _content = document.getElementById("content")
+
+        _popup.style.display = 'block';
+        _content.style.display = 'none';
+        console.log(room)
+
+        function connectToGame() {
+            const username = document.getElementById("username").value
+            socket.emit('join', { username, room })
+            console.log(`${username} has joined the room ${room}`)
+            _popup.style.display = 'none'
+            _content.style.display = 'block'
+
+            makeHTMLBoard()
+            render()
+        }
+
+        function makeHTMLBoard() {
+            const root = document.getElementById("board")
+            for (var i = 0; i < 64; i++) {
+                const square = document.createElement("div")
+                square.classList.add("square")
+                row = Math.floor(i / 8);
+                console.log(row)
+                if (row % 2 == i % 2) {
+                    square.classList.add("black")
+                }
+                square.classList.add(`${i}`)
+
+                // row.appendChild(square)
+                root.appendChild(square)
+            }
+        }
+        function joinroom() {
+            var tst = document.getElementById("room")
+            console.log(tst.value)
+            socket.emit('join', { 'username': 'b_user', 'room': tst.value });
+        }
+
+        function createroom() {
+            var roomn = `${Math.floor(Math.random() * 100)}`
+            console.log(roomn)
+            socket.emit('join', { 'username': 'a_user', 'room': roomn });
+        }
+
+        // socket.emit('move-receiver', { 'username': 'a_user', 'room': roomn });
+        socket.on('status', function (data) {
+            console.log(data)
+        });
+
+        socket.on('move-made', function (data) {
+            console.log(data)
+        });
+
+
+    </script>
+
+</body>
+
+</html>
