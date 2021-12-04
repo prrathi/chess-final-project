@@ -6,7 +6,11 @@
 + [Python](https://www.python.org/downloads/) v3.6+
 
 # Setup
-Clone this repository to your local machine, `cd` into the directory, and run `make 
+Clone this repository to your local machine, `cd` into the directory, and run:
+```
+make setup
+source env/bin/activate
+```
 
 # Libraries
 + [SocketIO](https://github.com/miguelgrinberg/python-socketio)
