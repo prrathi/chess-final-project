@@ -26,7 +26,7 @@ setup $(VENV_NAME)/bin/activate: requirements.txt
 	
 	$(CARGO_ENV) cargo install $(CARGO_OPTS) wasm-pack
 	
-	$(MATURIN) develop -m $(CHESS_PY_DIR)/Cargo.toml
+	source $(BIN_DIR)/activate && $(MATURIN) develop -m $(CHESS_PY_DIR)/Cargo.toml
 
 uninstall:
 	rm -rf __pycache__ $(VENV_NAME)
