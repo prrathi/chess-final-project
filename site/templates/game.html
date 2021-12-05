@@ -4,27 +4,248 @@
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js" integrity="sha512-nYuHvSAhY5lFZ4ixSViOwsEKFvlxHMU2NHts1ILuJgOS6ptUmAGt/0i5czIgMOahKZ6JN84YFDA+mCdky7dD8A==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"
+        integrity="sha512-nYuHvSAhY5lFZ4ixSViOwsEKFvlxHMU2NHts1ILuJgOS6ptUmAGt/0i5czIgMOahKZ6JN84YFDA+mCdky7dD8A=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <!-- <script src="https://use.fontawesome.com/a068fc1f09.js"></script> -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css" integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA==" crossorigin="anonymous" referrerpolicy="no-referrer"
-    />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta2/css/all.min.css"
+        integrity="sha512-YWzhKL2whUzgiheMoBFwW8CKV4qpHQAEuvilg9FAn5VJUDwKZZxkJNuGM4XkWuk94WCrrwslk8yWNGmY1EduTA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
     <title>Python Game</title>
+    <link rel="stylesheet" href="/static/game.css" />
     <script type="module">
-        import init, { JsBoard } from '/static/pkg/chess_engine.js'; async function run() { await init(); let board = new JsBoard(); console.log(board.get_legal_moves(0,1)); } run();
+        import init, { JsBoard } from '/static/pkg/chess_engine.js';
+        init().then(() => {
+            let board = new JsBoard();
+            // this will run on page start to connect to the room websocket
+            function render(playerColor) {
+                if(playerColor===undefined){
+                    var root = document.getElementById("board");
+                    var childNodes = root.children;
+                    for (var i = 0; i < 64; i++) {
+                        childNodes[i].innerHTML = '';
+                    }
+                    return;
+                }
+                console.log(playerColor);
+                var root = document.getElementById("board");
+                var childNodes = root.children;
+                for (var i = 0; i < 64; i++) {
+                    var row = Math.floor(i / 8);
+                    if (playerColor === 'white') {
+                        row = 7 - row;
+                    }
+                    const col = i % 8;
+                    const piece = board.get_piece_at(row, col);
+                    if (piece === undefined) {
+                        childNodes[i].innerHTML = '';
+                    } else {
+                        childNodes[i].innerHTML = `<i class="fas ${piece.get_color()}-piece piece fa-chess-${piece.get_piece_type()}"></i>`;
+                    }
+                }
+            }
+            var socket = io.connect();
+            const room = window.location.href.split('/').slice(-1)[0] // avoid using templates for faster debugging
+            console.log(`room number is; ${room}`)
+
+            document.getElementById("game-code").innerHTML = `Game code: ${room}`
+            const _popup = document.getElementById("popup")
+            const _content = document.getElementById("content")
+
+            _popup.style.display = 'block';
+            _content.style.display = 'none';
+            console.log(room)
+            let from = null;
+            let to = null;
+            let playerColor;
+            let gameStart = false;
+            let currentTurn = 'white';
+
+            function connectToGame() {
+                const username = document.getElementById("username").value
+                socket.emit('join', {
+                    username,
+                    room
+                })
+                console.log(`${username} has joined the room ${room}`)
+                _popup.style.display = 'none'
+                _content.style.display = 'block'
+            }
+
+            function getRowCol(node) {
+                for (var cls of node.classList) {
+                    if (!isNaN(cls)) {
+                        var n = +cls;
+                        return [Math.floor(n / 8), n % 8]
+                    }
+                }
+            }
+
+            function onClickSquare(event) {
+                if (!gameStart || playerColor == 'spectator' || currentTurn != playerColor) {
+                    return;
+                }
+                let square;
+                if (!event.target.classList.contains("square")) {
+                    square = event.target.parentNode
+                } else {
+                    square = event.target
+                }
+                console.log('click', square)
+                if (square.hasChildNodes()) {
+                    console.log('clicked piece')
+                    if (from === null){
+                        from = square;
+                    }else{
+                        makeMove(square, from);
+                    }
+                    from = square;
+                    console.log(from)
+                } else if (from !== null) {
+                    console.log('moving stuff')
+                    makeMove(square, from)
+                }
+            }
+
+            function makeMove(to, from) {
+                var [fromRow, fromCol] = getRowCol(from)
+                var [toRow, toCol] = getRowCol(to)
+
+                var move = board.get_move_from_pos(fromRow, fromCol, toRow, toCol);
+                if (move === undefined) {
+                    console.log('invalid move')
+                    return;
+                }
+                socket.emit('game', {
+                    room,
+                    data: {
+                        type: 'move',
+                        fromRow,
+                        fromCol,
+                        toRow,
+                        toCol
+                    }
+                })
+            }
+
+            function makeHTMLBoard(playerColor) {
+                const root = document.getElementById("board")
+                for (var i = 0; i < 64; i++) {
+                    const square = document.createElement("div")
+                    square.classList.add("square")
+                    var row = Math.floor(i / 8);
+                    console.log(row)
+                    if (row % 2 == i % 2) {
+                        square.classList.add("white")
+                    } else {
+                        square.classList.add("black")
+                    }
+                    var id = i;
+                    if (playerColor === 'white') {
+                        row = 7 - row;
+                        id = row*8 + i % 8;
+                    }
+                    square.classList.add(`${id}`)
+                    square.addEventListener('click', onClickSquare, false)
+                    // row.appendChild(square)
+                    root.appendChild(square)
+                }
+            }
+
+            function joinroom() {
+                const username = document.getElementById("username").value
+                socket.emit('join', {
+                    'username': username,
+                    'room': room
+                });
+            }
+
+            function createroom() {
+                var roomn = `${Math.floor(Math.random() * 100)}`
+                console.log(roomn)
+                socket.emit('join', {
+                    'username': 'a_user',
+                    'room': roomn
+                });
+            }
+
+            // socket.emit('move-receiver', { 'username': 'a_user', 'room': roomn });
+            socket.on('status', function (data) {
+                console.log(data)
+                const status = document.getElementById('status-text')
+                status.innerHTML += data + "<br>";
+            });
+
+            socket.on('data', function (data) {
+                console.log(data)
+                if (data.type == 'init') {
+                    if (data.count == 1) {
+                        playerColor = 'white'
+                    } else if (data.count == 2) {
+                        playerColor = 'black'
+                        socket.emit('game', {
+                            room,
+                            data: {
+                                type: 'start'
+                            }
+                        })
+                        socket.emit('status', {
+                            room,
+                            message: 'Game is ready to start, player one go'
+                        })
+                    } else {
+                        playerColor = 'spectator'
+                    }
+                    makeHTMLBoard(playerColor);
+                    render(playerColor);
+                }
+            })
+
+            socket.on('game', function (data) {
+                console.log('Game update =>', data)
+                if (data.type == 'start') {
+                    gameStart = true;
+                } else if (data.type == 'move') {
+                    currentTurn = currentTurn == 'white' ? 'black' : 'white';
+                    if (currentTurn == playerColor) {
+                        socket.emit('status', {
+                            room,
+                            message: `${currentTurn} it is now your turn`
+                        })
+                    }
+                    let {
+                        fromRow,
+                        fromCol,
+                        toRow,
+                        toCol
+                    } = data;
+                    var move = board.get_move_from_pos(fromRow, fromCol, toRow, toCol);
+                    board.apply_move(move);
+                    render(playerColor);
+                }
+            })
+            socket.on('move-made', function (data) {
+                console.log(data)
+            });
+
+            window.connectToGame = connectToGame;
+            window.onClickSquare = onClickSquare;
+        });
     </script>
 </head>
-<link rel="stylesheet" href="/static/game.css" />
 
 <body>
-    <div class="big-text d-flex flex-row justify-content-center" id="popup" style='background-color: #FFE4C4; color: black'>
-
-        <h1><b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4"
-                id="username"> <br><br>
+    <div class="big-text d-flex flex-row justify-content-center" id="popup"
+        style='background-color: #FFE4C4; color: black'>
+        <h1>
+            <b>Enter Username: <br><br> <input style="font-color: #4682B4" type="text; font-color: #4682B4"
+                    id="username"> <br><br>
                 <button style="background-color:#FFE4C4; color:black" onclick=connectToGame()> PLAY!!!
-                </b> </h1>
+            </b>
+        </h1>
     </div>
     <div id="content" class="center">
 
@@ -34,258 +255,6 @@
 
         <div id="status-text"></div>
     </div>
-    </div>
-    <script>
-        /*
-                                                                                TODO
-                                                                                =====
-                                                                                [Praneeth]
-                                                                                Python move validation
-                                                                                Dictionary of game-code to board
-                                                                                - validate stuff and emit status/game event accordingly
-
-                                                                                [AMIT]
-                                                                                Get JS bindings working
-                                                                                Replace initializeBoard with rust function
-                                                                                Update render to work with new rust function
-
-                                                                                [NIHAL]
-                                                                                Fix <center> tags
-                                                                                Minor styling updates
-                                                                                Add snackbar / popup we can use for status updates
-                                                                                On status update, show popup for a couple seconds
-
-                                                                                [PETE]
-                                                                                Inside makeMove call move validation functions
-                                                                                When cell is clicked, call validMove function and update render to highlight pieces
-                                                                                */
-        function initializeBoard() {
-            let squares = new Array(8);
-            for (let i = 0; i < 8; i++) {
-                let row = new Array(8);
-                for (let j = 0; j < 8; j++) {
-                    let colorsquare = '';
-                    let typesquare = '';
-                    if (i === 0 || i === 1) {
-                        colorsquare = 'black';
-                    } else if (i === 6 || i === 7) {
-                        colorsquare = 'white';
-                    }
-                    if (i === 1 || i === 6) {
-                        typesquare = 'pawn';
-                    } else if (i === 0 || i === 7) {
-                        if (j === 0 || j === 7) {
-                            typesquare = 'rook';
-                        } else if (j === 1 || j === 6) {
-                            typesquare = 'knight';
-                        } else if (j === 2 || j === 5) {
-                            typesquare = 'bishop';
-                        } else if (j === 3) {
-                            typesquare = 'queen';
-                        } else {
-                            typesquare = 'king';
-                        }
-                    }
-                    row[j] = {
-                        color: colorsquare,
-                        type: typesquare
-                    };
-                }
-                squares[i] = row;
-            }
-            return squares;
-        }
-        let squares = initializeBoard();
-        // 
-        // this will run on page start to connect to the room websocket
-        function render() {
-            var root = document.getElementById("board");
-            var childNodes = root.children;
-            for (var i = 0; i < 64; i++) {
-                const row = Math.floor(i / 8);
-                const col = i % 8;
-                const data = squares[row][col];
-                if (squares[row][col].type != '') {
-                    childNodes[i].innerHTML = `<i class="fas ${squares[row][col].color}-piece piece fa-chess-${squares[row][col].type}"></i>`;
-                } else {
-                    childNodes[i].innerHTML = ''
-                }
-            }
-        }
-        var socket = io.connect();
-        const room = window.location.href.split('/').slice(-1)[0] // avoid using templates for faster debugging
-        console.log(`room number is; ${room}`)
-
-        document.getElementById("game-code").innerHTML = `Game code: ${room}`
-        const _popup = document.getElementById("popup")
-        const _content = document.getElementById("content")
-
-        _popup.style.display = 'block';
-        _content.style.display = 'none';
-        console.log(room)
-        let from = null;
-        let to = null;
-        let playerColor;
-        let gameStart = false;
-        let currentTurn = 'white';
-
-        function connectToGame() {
-            const username = document.getElementById("username").value
-            socket.emit('join', {
-                username,
-                room
-            })
-            console.log(`${username} has joined the room ${room}`)
-            _popup.style.display = 'none'
-            _content.style.display = 'block'
-
-            makeHTMLBoard()
-            render()
-        }
-
-        function getRowCol(node) {
-            for (var cls of node.classList) {
-                if (!isNaN(cls)) {
-                    var n = +cls;
-                    return [Math.floor(n / 8), n % 8]
-                }
-            }
-        }
-
-        function onClickSquare(event) {
-            if (!gameStart || playerColor == 'spectator' || currentTurn != playerColor) {
-                return;
-            }
-            let square;
-            if (!event.target.classList.contains("square")) {
-                square = event.target.parentNode
-            } else {
-                square = event.target
-            }
-            console.log('click', square)
-            if (square.hasChildNodes()) {
-                console.log('clicked piece')
-                from = square;
-                console.log(from)
-            } else if (from !== null) {
-                console.log('moving stuff')
-                makeMove(square, from)
-            }
-        }
-
-        function makeMove(to, from) {
-            var [fromRow, fromCol] = getRowCol(from)
-            var [toRow, toCol] = getRowCol(to)
-            socket.emit('game', {
-                room,
-                data: {
-                    type: 'move',
-                    fromRow,
-                    fromCol,
-                    toRow,
-                    toCol
-                }
-            })
-        }
-
-        function makeHTMLBoard() {
-            const root = document.getElementById("board")
-            for (var i = 0; i < 64; i++) {
-                const square = document.createElement("div")
-                square.classList.add("square")
-                row = Math.floor(i / 8);
-                console.log(row)
-                if (row % 2 == i % 2) {
-                    square.classList.add("black")
-                } else {
-                    square.classList.add("white")
-                }
-                square.classList.add(`${i}`)
-                square.addEventListener('click', onClickSquare, false)
-                    // row.appendChild(square)
-                root.appendChild(square)
-            }
-        }
-
-        function joinroom() {
-            const username = document.getElementById("username").value
-            socket.emit('join', {
-                'username': username,
-                'room': room
-            });
-        }
-
-        function createroom() {
-            var roomn = `${Math.floor(Math.random() * 100)}`
-            console.log(roomn)
-            socket.emit('join', {
-                'username': 'a_user',
-                'room': roomn
-            });
-        }
-
-        // socket.emit('move-receiver', { 'username': 'a_user', 'room': roomn });
-        socket.on('status', function(data) {
-            console.log(data)
-            const status = document.getElementById('status-text')
-            status.innerHTML += data + "<br>";
-        });
-
-        socket.on('data', function(data) {
-            console.log(data)
-            if (data.type == 'init') {
-                if (data.count == 1) {
-                    playerColor = 'white'
-                } else if (data.count == 2) {
-                    playerColor = 'black'
-                    socket.emit('game', {
-                        room,
-                        data: {
-                            type: 'start'
-                        }
-                    })
-                    socket.emit('status', {
-                        room,
-                        message: 'Game is ready to start, player one go'
-                    })
-                } else {
-                    playerColor = 'spectator'
-                }
-                // determine if player will be white or black
-            }
-        })
-
-        socket.on('game', function(data) {
-            console.log('Game update =>', data)
-            if (data.type == 'start') {
-                gameStart = true;
-            } else if (data.type == 'move') {
-                currentTurn = currentTurn == 'white' ? 'black' : 'white';
-                if (currentTurn == playerColor) {
-                    socket.emit('status', {
-                        room,
-                        message: `${currentTurn} it is now your turn`
-                    })
-                }
-                let {
-                    fromRow,
-                    fromCol,
-                    toRow,
-                    toCol
-                } = data;
-                squares[toRow][toCol] = squares[fromRow][fromCol]
-                squares[fromRow][fromCol] = {
-                    color: 'white',
-                    type: ''
-                }
-                render()
-            }
-        })
-        socket.on('move-made', function(data) {
-            console.log(data)
-        });
-    </script>
-
 </body>
 
 </html>
