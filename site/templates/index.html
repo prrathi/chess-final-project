@@ -1,90 +1,84 @@
+2
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+
+<head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Multiplayer Chess</title>
 
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
-    />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css" />
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
     <style>
-      ::placeholder {
-        color: dimgray;
-      }
-      .big-text {
-        font-size: 3em;
-      }
-
-      body {
-        margin: 0;
-        padding: 0;
-      }
+         ::placeholder {
+            color: dimgray;
+        }
+        
+        .big-text {
+            font-size: 3em;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
     </style>
-  </head>
+</head>
 
-  <body style="background-color: #4682b4">
+<body style="background-color: #4682b4">
     <div class="container-fluid">
-      <div class="jumbotron mt-3" style="background-color: #ffe4c4">
-        <h1>Play Chess!</h1>
-        <p>Enter A Join Code To Join A Game, Or Create Your Own!</p>
-      </div>
-      <div class="big-text d-flex flex-row justify-content-center">
-        <div class="mx-1">
-          <button
-            style="margin: 5px; background: #ffe4c4; color: #4682b4"
-            id="join-room"
-            onclick="makepopup()"
-          >
+        <div class="jumbotron mt-3" style="background-color: #ffe4c4">
+            <h1>Play Chess!</h1>
+            <p>Enter A Join Code To Join A Game, Or Create Your Own!</p>
+        </div>
+        <div class="big-text d-flex flex-row justify-content-center">
+            <div class="mx-1">
+                <button style="margin: 5px; background: #ffe4c4; color: #4682b4" id="join-room" onclick="makepopup()">
             Join A Room!
           </button>
-        </div>
-        <div id="code-popup">
-          <input
-            type="text"
-            style="margin: 5px; background: #ffe4c4; color: #4682b4"
-            id="code-input"
-            placeholder="Input Your Code!"
-          />
-          <button style="margin: 5px; background: #ffe4c4; color: #4682b4" onclick="oncodesubmit()">
+            </div>
+            <div id="code-popup">
+                <input type="text" style="margin: 5px; background: #ffe4c4; color: #4682b4" id="code-input" placeholder="Input Your Code!" />
+                <button style="margin: 5px; background: #ffe4c4; color: #4682b4" onclick="oncodesubmit()">
             Submit
           </button>
-        </div>
-        <div class="mx-1">
-          <button style="margin: 5px; background: #ffe4c4" id="make-room" onclick="createroom()">
+            </div>
+            <div class="mx-1">
+                <button style="margin: 5px; background: #ffe4c4" id="make-room" onclick="createroom()">
             Make A Room!
           </button>
+            </div>
         </div>
-      </div>
     </div>
 
     <script type="text/javascript" charset="utf-8">
-      const code_popup = document.getElementById('code-popup');
-      const make_room = document.getElementById('make-room');
-      const join_room = document.getElementById('join-room');
-      code_popup.style.display = 'none';
-      function makepopup() {
-        // get code
-        code_popup.style.display = 'block';
-        make_room.style.display = 'none';
-        join_room.style.display = 'none';
-      }
-      function oncodesubmit() {
-        const code = document.getElementById('code-input').value;
-        if (code.length > 0) {
-          document.location.href = `/game/${code}`;
+        const code_popup = document.getElementById('code-popup');
+        const make_room = document.getElementById('make-room');
+        const join_room = document.getElementById('join-room');
+        code_popup.style.display = 'none';
+
+        function makepopup() {
+            // get code
+            code_popup.style.display = 'block';
+            make_room.style.display = 'none';
+            join_room.style.display = 'none';
         }
-      }
 
-      function createroom() {
-        // randomly generate a number
-        const code = `${Math.floor(Math.random() * (999999 - 100000) + 100000)}`;
+        function oncodesubmit() {
+            const code = document.getElementById('code-input').value;
+            if (code.length > 0) {
+                document.location.href = `/game/${code}`;
+            }
+        }
 
-        document.location.href = `/game/${code}`;
-      }
+        function createroom() {
+            // randomly generate a number
+            const code = `${Math.floor(Math.random() * (999999 - 100000) + 100000)}`;
+
+            document.location.href = `/game/${code}`;
+        }
     </script>
-  </body>
+</body>
+
 </html>

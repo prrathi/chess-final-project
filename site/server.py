@@ -2,6 +2,9 @@ from flask import Flask, render_template, redirect, session, url_for, current_ap
 from flask_socketio import SocketIO, emit, send
 from flask_socketio import join_room, leave_room
 
+# Make sure you have run `make` and activated environment
+import chess_engine
+
 import os
 
 
@@ -10,6 +13,7 @@ app.config['SECRET_KEY'] = 'super_secret'
 socketio = SocketIO(app)
 
 PLAYER_COUNTER = {}
+BOARD_TRACKER = {}
 
 
 @socketio.on('move-receiver')
@@ -29,6 +33,8 @@ def on_join(data):
     if room in PLAYER_COUNTER:
         PLAYER_COUNTER[room] += 1
     else:
+        # TODO make board here assign it
+
         PLAYER_COUNTER[room] = 1
 
     emit('status', username + ' has entered the room.', to=room)
@@ -57,6 +63,21 @@ def on_leave(data):
 def on_game(data):
     room = data['room']
     data = data['data']
+    # TODO perform server-side move validation
+    # emit status if they have
+    '''
+    socket.emit('game', {
+                room,
+                data: {
+                    type: 'move',
+                    fromRow,
+                    fromCol,
+                    toRow,
+                    toCol
+                }
+            })
+    '''
+
     emit('game', data, to=room)
 
 
@@ -82,4 +103,4 @@ def about():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0')
+    socketio.run(app, host='0.0.0.0', port = 1234)
