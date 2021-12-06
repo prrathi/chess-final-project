@@ -9,11 +9,21 @@
 }
 
 .black.highlight {
-    background: red;
-}
+    background: #ADD8E6;
+    border-style: outset;
 
+}
+#indicator {
+    position: absolute;
+    width: 200px;
+    height: 200px;
+    top: 30%;
+    border-radius: 50%;
+    margin: 2em;
+}
 .white.highlight {
-    background: red;
+    background: #ADD8E6;
+    border-style: outset;
 }
 .square {
     display: flex;
@@ -37,9 +47,13 @@
     display: flex;
     flex-wrap: wrap;
     border-style: solid;
-    /* background-color: #FFE4C4 */
 }
 
+#status-updates {
+    position: absolute;
+    top: 5%;
+    right: 5%;
+}
 * {
     margin: 0;
     padding: 0;
@@ -47,6 +61,7 @@
 
 body {
     height: 100vh;
+    background-color: #FFE4C4
 }
 
 #popup {

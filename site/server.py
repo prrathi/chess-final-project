@@ -18,6 +18,7 @@ socketio = SocketIO(app)
 
 PLAYER_COUNTER = {}
 BOARD_TRACKER = {}
+columndict = {0: "A", 1: "B", 2: "C", 3: "D", 4: "E", 5: "F", 6: "G", 7: "H"}
 
 @socketio.on('join')
 def on_join(data):
@@ -68,6 +69,7 @@ def on_move(data):
                 if move.to_pos == (data['toRow'], data['toCol']):
                     val = move
                     data['result'] = BOARD_TRACKER[room].apply_move(val)
+                    data['msg'] = str(piece.piece_type()) + ' to ' + columndict[data['toCol']] + str(data['toRow']+1)
                     break
         if val:
             emit('move', data, to=room)
@@ -87,11 +89,12 @@ def on_end(data):
     BOARD_TRACKER[room] = None
     if PLAYER_COUNTER[room]:
         PLAYER_COUNTER[room] = 0
-    emit('endgame', data['winner'] + ' wins!\nreturn to the home page to start a new game')
+    emit('endgame', data['winner'] + ' Wins!\nThe Board Has Been Reset')
+    emit('init', {'count': PLAYER_COUNTER[room]})
 
 @socketio.on('connect')
 def test_connect():
-    emit('status', ' you have connected')
+    emit('status', ' You Have Connected')
 
 
 @app.route('/')
