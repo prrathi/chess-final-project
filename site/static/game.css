@@ -8,6 +8,13 @@
     font-family: 'Courier New', monospace;
 }
 
+.black.highlight {
+    background: red;
+}
+
+.white.highlight {
+    background: red;
+}
 .square {
     display: flex;
     align-items: center;
