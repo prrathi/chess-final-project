@@ -28,7 +28,10 @@ setup $(VENV_NAME)/bin/activate: requirements.txt
 	
 	source $(BIN_DIR)/activate && $(MATURIN) develop -m $(CHESS_PY_DIR)/Cargo.toml
 
+run:
+	source $(BIN_DIR)/activate && $(PYTHON) site/server.py
+
 uninstall:
 	rm -rf __pycache__ $(VENV_NAME)
 
-.PHONY: uninstall setup
+.PHONY: uninstall setup run

@@ -22,7 +22,7 @@
             let board = new JsBoard();
             // this will run on page start to connect to the room websocket
             function render(playerColor) {
-                if(playerColor===undefined){
+                if (playerColor === undefined) {
                     var root = document.getElementById("board");
                     var childNodes = root.children;
                     for (var i = 0; i < 64; i++) {
@@ -71,7 +71,8 @@
                     room
                 })
                 console.log(`${username} has joined the room ${room}`)
-                _popup.style.display = 'none'
+                _popup.classList.remove('d-flex')
+                _popup.classList.add('d-none')
                 _content.style.display = 'block'
             }
 
@@ -97,9 +98,9 @@
                 console.log('click', square)
                 if (square.hasChildNodes()) {
                     console.log('clicked piece')
-                    if (from === null){
+                    if (from === null) {
                         from = square;
-                    }else{
+                    } else {
                         makeMove(square, from);
                     }
                     from = square;
@@ -138,16 +139,15 @@
                     const square = document.createElement("div")
                     square.classList.add("square")
                     var row = Math.floor(i / 8);
-                    console.log(row)
                     if (row % 2 == i % 2) {
-                        square.classList.add(playerColor)
+                        square.classList.add(playerColor === 'white' ? 'white' : 'black')
                     } else {
-                        square.classList.add(playerColor=== 'white' ? 'black' : 'white')
+                        square.classList.add(playerColor === 'white' ? 'black' : 'white')
                     }
                     var id = i;
                     if (playerColor === 'white') {
                         row = 7 - row;
-                        id = row*8 + i % 8;
+                        id = row * 8 + i % 8;
                     }
                     square.classList.add(`${id}`)
                     square.addEventListener('click', onClickSquare, false)
@@ -166,7 +166,6 @@
 
             function createroom() {
                 var roomn = `${Math.floor(Math.random() * 100)}`
-                console.log(roomn)
                 socket.emit('join', {
                     'username': 'a_user',
                     'room': roomn
@@ -181,7 +180,7 @@
                 //status.innerHTML += data + "<br>";
             });
 
-            socket.on('check', function(data) {
+            socket.on('check', function (data) {
                 console.log(data)
             });
 
@@ -217,11 +216,11 @@
                 } else if (data.type == 'move') {
                     currentTurn = currentTurn == 'white' ? 'black' : 'white';
                     if (currentTurn == playerColor) {
-                        if (!data.result){
+                        if (!data.result) {
                             socket.emit('status', {
-                            room,
-                            message: `${currentTurn} it is now your turn`
-                        })
+                                room,
+                                message: `${currentTurn} it is now your turn`
+                            })
                         }
                     }
                     let {
@@ -235,7 +234,7 @@
                     render(playerColor);
                     if (data.result) {
                         var winPlayer = currentTurn == 'white' ? 'black' : 'white';
-                        socket.emit('endgame', {room, 'winner': winPlayer});
+                        socket.emit('endgame', { room, 'winner': winPlayer });
                     }
                 }
             })
