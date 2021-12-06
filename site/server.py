@@ -19,14 +19,6 @@ socketio = SocketIO(app)
 PLAYER_COUNTER = {}
 BOARD_TRACKER = {}
 
-
-@socketio.on('move-receiver')
-def on_move(data):
-    # Make sure the move works
-    # If it works,
-    emit('move-made')
-
-
 @socketio.on('join')
 def on_join(data):
     print(data)
@@ -43,7 +35,7 @@ def on_join(data):
 
     emit('status', username + ' has entered the room.', to=room)
 
-    emit('data', {'type': 'init', 'count': PLAYER_COUNTER[room]})
+    emit('init', {'count': PLAYER_COUNTER[room]})
 
 
 @socketio.on('status')
@@ -63,41 +55,31 @@ def on_leave(data):
     emit('status', username + ' has left the room.', to=room)
 
 
-@socketio.on('game')
-def on_game(data):
+@socketio.on('move')
+def on_move(data):
     room = data['room']
     data = data['data']
-    if data['type'] == 'move':
-        val = None
-        piece = BOARD_TRACKER[room].get_piece_at(data['fromRow'], data['fromCol'])
-        if data['turn'] == str(piece.color)[6:].lower():
-            moves = BOARD_TRACKER[room].get_legal_moves(data['fromRow'], data['fromCol'])
-            if moves:
-                for move in moves:
-                    if move.to_pos == (data['toRow'], data['toCol']):
-                        val = move
-                        data['result'] = BOARD_TRACKER[room].apply_move(val)
-                        break
-            if val:
-                emit('game', data, to=room)
-            else:
-                emit('check', 'invalid move', to=room)
+    val = None
+    piece = BOARD_TRACKER[room].get_piece_at(data['fromRow'], data['fromCol'])
+    if data['turn'] == str(piece.color)[6:].lower():
+        moves = BOARD_TRACKER[room].get_legal_moves(data['fromRow'], data['fromCol'])
+        if moves:
+            for move in moves:
+                if move.to_pos == (data['toRow'], data['toCol']):
+                    val = move
+                    data['result'] = BOARD_TRACKER[room].apply_move(val)
+                    break
+        if val:
+            emit('move', data, to=room)
         else:
             emit('check', 'invalid move', to=room)
-    elif data['type'] == 'start':
-        emit('game', data, to=room)
-    '''
-    socket.emit('game', {
-                room,
-                data: {
-                    type: 'move',
-                    fromRow,
-                    fromCol,
-                    toRow,
-                    toCol
-                }
-            })
-    '''
+    else:
+        emit('check', 'invalid move', to=room)
+
+@socketio.on('game_start')
+def on_game_start(data):
+    emit('game_start', data['data'], to=data['room'])
+
 
 @socketio.on('endgame')
 def on_end(data):

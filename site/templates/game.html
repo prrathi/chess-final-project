@@ -85,6 +85,22 @@
                 }
             }
 
+            function highlightSquares(moves) {
+                var root = document.getElementById("board");
+                var childNodes = root.children;
+                for (let node of childNodes) {
+                    node.classList.remove('highlight')
+                }
+                for (let move of moves) {
+                    console.log(move)
+                    var row = move.to.x;
+                    if (playerColor == 'white') {
+                        row = 7 - row;
+                    }
+                    childNodes[row * 8 + move.to.y].classList.add('highlight')
+                }
+            }
+
             function onClickSquare(event) {
                 if (!gameStart || playerColor == 'spectator' || currentTurn != playerColor) {
                     return;
@@ -96,18 +112,21 @@
                     square = event.target
                 }
                 console.log('click', square)
-                if (square.hasChildNodes()) {
+                // ensure you can't move someone elses piece
+                if (square.hasChildNodes() && square.childNodes[0].classList.contains(playerColor + '-piece')) {
                     console.log('clicked piece')
                     if (from === null) {
                         from = square;
-                    } else {
-                        makeMove(square, from);
                     }
                     from = square;
+                    var [fromRow, fromCol] = getRowCol(from)
+                    const legal_squares = board.get_legal_moves(fromRow, fromCol);
+                    highlightSquares(legal_squares);
                     console.log(from)
                 } else if (from !== null) {
                     console.log('moving stuff')
                     makeMove(square, from)
+                    from = null;
                 }
             }
 
@@ -120,10 +139,9 @@
                     console.log('invalid move')
                     return;
                 }
-                socket.emit('game', {
+                socket.emit('move', {
                     room,
                     data: {
-                        'type': 'move',
                         'turn': currentTurn,
                         'fromRow': fromRow,
                         'fromCol': fromCol,
@@ -172,7 +190,6 @@
                 });
             }
 
-            // socket.emit('move-receiver', { 'username': 'a_user', 'room': roomn });
             socket.on('status', function (data) {
                 console.log(data)
                 const status = document.getElementById('status-text')
@@ -184,58 +201,57 @@
                 console.log(data)
             });
 
-            socket.on('data', function (data) {
-                console.log(data)
-                if (data.type == 'init') {
-                    if (data.count == 1) {
-                        playerColor = 'white'
-                    } else if (data.count == 2) {
-                        playerColor = 'black'
-                        socket.emit('game', {
-                            room,
-                            data: {
-                                type: 'start'
-                            }
-                        })
-                        socket.emit('status', {
-                            room,
-                            message: 'game is ready to start, player one go'
-                        })
-                    } else {
-                        playerColor = 'spectator'
-                    }
-                    makeHTMLBoard(playerColor);
-                    render(playerColor);
+            socket.on('init', function (data) {
+                console.log('init')
+                if (data.count == 1) {
+                    playerColor = 'white'
+                } else if (data.count == 2) {
+                    playerColor = 'black'
+                    console.log('Supposed to start')
+                    socket.emit('game_start', {
+                        room,
+                        data: {}
+                    })
+
+                } else {
+                    playerColor = 'spectator'
                 }
+                makeHTMLBoard(playerColor);
+                render(playerColor);
             })
 
-            socket.on('game', function (data) {
+            socket.on('game_start', function (data) {
+                socket.emit('status', {
+                        room,
+                        message: 'game is ready to start, player one go'
+                })
+                gameStart = true;
+            })
+
+            socket.on('move', function (data) {
                 console.log('Game update =>', data)
-                if (data.type == 'start') {
-                    gameStart = true;
-                } else if (data.type == 'move') {
-                    currentTurn = currentTurn == 'white' ? 'black' : 'white';
-                    if (currentTurn == playerColor) {
-                        if (!data.result) {
-                            socket.emit('status', {
-                                room,
-                                message: `${currentTurn} it is now your turn`
-                            })
-                        }
+                currentTurn = currentTurn == 'white' ? 'black' : 'white';
+                if (currentTurn == playerColor) {
+                    if (!data.result) {
+                        socket.emit('status', {
+                            room,
+                            message: `${currentTurn} it is now your turn`
+                        })
                     }
-                    let {
-                        fromRow,
-                        fromCol,
-                        toRow,
-                        toCol
-                    } = data;
-                    var move = board.get_move_from_pos(fromRow, fromCol, toRow, toCol);
-                    board.apply_move(move);
-                    render(playerColor);
-                    if (data.result) {
-                        var winPlayer = currentTurn == 'white' ? 'black' : 'white';
-                        socket.emit('endgame', { room, 'winner': winPlayer });
-                    }
+                }
+                let {
+                    fromRow,
+                    fromCol,
+                    toRow,
+                    toCol
+                } = data;
+                var move = board.get_move_from_pos(fromRow, fromCol, toRow, toCol);
+                board.apply_move(move);
+                highlightSquares([]);
+                render(playerColor);
+                if (data.result) {
+                    var winPlayer = currentTurn == 'white' ? 'black' : 'white';
+                    socket.emit('endgame', { room, 'winner': winPlayer });
                 }
             })
             socket.on('move-made', function (data) {
