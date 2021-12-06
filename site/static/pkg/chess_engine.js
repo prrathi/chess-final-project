@@ -373,12 +373,12 @@ async function init(input) {
         var ret = JsPiece.__wrap(arg0);
         return addHeapObject(ret);
     };
+    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
+        takeObject(arg0);
+    };
     imports.wbg.__wbg_jsmove_new = function(arg0) {
         var ret = JsMove.__wrap(arg0);
         return addHeapObject(ret);
-    };
-    imports.wbg.__wbindgen_object_drop_ref = function(arg0) {
-        takeObject(arg0);
     };
     imports.wbg.__wbg_new_949bbc1147195c4e = function() {
         var ret = new Array();
