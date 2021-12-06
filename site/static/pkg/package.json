@@ -1,0 +1,12 @@
+{
+  "name": "chess_engine_wasm_bindings",
+  "version": "0.1.0",
+  "files": [
+    "chess_engine_bg.wasm",
+    "chess_engine.js",
+    "chess_engine.d.ts"
+  ],
+  "module": "chess_engine.js",
+  "types": "chess_engine.d.ts",
+  "sideEffects": false
+}
