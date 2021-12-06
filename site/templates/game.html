@@ -139,9 +139,9 @@
                     var row = Math.floor(i / 8);
                     console.log(row)
                     if (row % 2 == i % 2) {
-                        square.classList.add("white")
+                        square.classList.add(playerColor)
                     } else {
-                        square.classList.add("black")
+                        square.classList.add(playerColor=== 'white' ? 'black' : 'white')
                     }
                     var id = i;
                     if (playerColor === 'white') {
