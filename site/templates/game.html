@@ -122,11 +122,12 @@
                 socket.emit('game', {
                     room,
                     data: {
-                        type: 'move',
-                        fromRow,
-                        fromCol,
-                        toRow,
-                        toCol
+                        'type': 'move',
+                        'turn': currentTurn,
+                        'fromRow': fromRow,
+                        'fromCol': fromCol,
+                        'toRow': toRow,
+                        'toCol': toCol
                     }
                 })
             }
@@ -176,7 +177,12 @@
             socket.on('status', function (data) {
                 console.log(data)
                 const status = document.getElementById('status-text')
-                status.innerHTML += data + "<br>";
+                status.innerHTML = data + "<br>"
+                //status.innerHTML += data + "<br>";
+            });
+
+            socket.on('check', function(data) {
+                console.log(data)
             });
 
             socket.on('data', function (data) {
@@ -194,7 +200,7 @@
                         })
                         socket.emit('status', {
                             room,
-                            message: 'Game is ready to start, player one go'
+                            message: 'game is ready to start, player one go'
                         })
                     } else {
                         playerColor = 'spectator'
@@ -211,10 +217,12 @@
                 } else if (data.type == 'move') {
                     currentTurn = currentTurn == 'white' ? 'black' : 'white';
                     if (currentTurn == playerColor) {
-                        socket.emit('status', {
+                        if (!data.result){
+                            socket.emit('status', {
                             room,
                             message: `${currentTurn} it is now your turn`
                         })
+                        }
                     }
                     let {
                         fromRow,
@@ -225,11 +233,21 @@
                     var move = board.get_move_from_pos(fromRow, fromCol, toRow, toCol);
                     board.apply_move(move);
                     render(playerColor);
+                    if (data.result) {
+                        var winPlayer = currentTurn == 'white' ? 'black' : 'white';
+                        socket.emit('endgame', {room, 'winner': winPlayer});
+                    }
                 }
             })
             socket.on('move-made', function (data) {
                 console.log(data)
             });
+            socket.on('endgame', function (data) {
+                console.log(data)
+                const status = document.getElementById('status-text')
+                status.innerHTML = data + "<br>"
+                //currentTurn = 'white'
+            })
 
             window.connectToGame = connectToGame;
             window.onClickSquare = onClickSquare;
