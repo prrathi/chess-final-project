@@ -3,9 +3,13 @@ from flask_socketio import SocketIO, emit, send
 from flask_socketio import join_room, leave_room
 
 # Make sure you have run `make` and activated environment
-import chess_engine
+#import chess_engine
 
-import os
+import sys, os
+sys.path.append(os.path.abspath('env/lib/python3.9/site-packages'))
+
+import chess_engine
+from chess_engine import *
 
 
 app = Flask(__name__)
@@ -33,8 +37,8 @@ def on_join(data):
     if room in PLAYER_COUNTER:
         PLAYER_COUNTER[room] += 1
     else:
-        # TODO make board here assign it
-
+        b = Board()
+        BOARD_TRACKER[room] = b
         PLAYER_COUNTER[room] = 1
 
     emit('status', username + ' has entered the room.', to=room)
@@ -63,8 +67,25 @@ def on_leave(data):
 def on_game(data):
     room = data['room']
     data = data['data']
-    # TODO perform server-side move validation
-    # emit status if they have
+    if data['type'] == 'move':
+        val = None
+        piece = BOARD_TRACKER[room].get_piece_at(data['fromRow'], data['fromCol'])
+        if data['turn'] == str(piece.color)[6:].lower():
+            moves = BOARD_TRACKER[room].get_legal_moves(data['fromRow'], data['fromCol'])
+            if moves:
+                for move in moves:
+                    if move.to_pos == (data['toRow'], data['toCol']):
+                        val = move
+                        data['result'] = BOARD_TRACKER[room].apply_move(val)
+                        break
+            if val:
+                emit('game', data, to=room)
+            else:
+                emit('check', 'invalid move', to=room)
+        else:
+            emit('check', 'invalid move', to=room)
+    elif data['type'] == 'start':
+        emit('game', data, to=room)
     '''
     socket.emit('game', {
                 room,
@@ -78,8 +99,13 @@ def on_game(data):
             })
     '''
 
-    emit('game', data, to=room)
-
+@socketio.on('endgame')
+def on_end(data):
+    room = data['room']
+    BOARD_TRACKER[room] = None
+    if PLAYER_COUNTER[room]:
+        PLAYER_COUNTER[room] = 0
+    emit('endgame', data['winner'] + ' wins!\nreturn to the home page to start a new game')
 
 @socketio.on('connect')
 def test_connect():
@@ -103,4 +129,4 @@ def about():
 
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port = 1234)
+    socketio.run(app, host='0.0.0.0', port = 4000)
