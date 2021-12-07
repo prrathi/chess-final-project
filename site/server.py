@@ -73,10 +73,7 @@ def on_move(data):
                     break
         if val:
             emit('move', data, to=room)
-        else:
-            emit('check', 'invalid move', to=room)
     else:
-        emit('check', 'invalid move', to=room)
 
 @socketio.on('game_start')
 def on_game_start(data):
