@@ -14,6 +14,11 @@ Clone this repository to your local machine, `cd` into the directory.
 make setup
 source env/bin/activate
 ```
+# Running
+Once setup, simply:  
+```
+make run
+```
 
 # Libraries
 + [SocketIO](https://github.com/miguelgrinberg/python-socketio)
