@@ -20,6 +20,9 @@ Once setup, simply:
 make run
 ```
 
+# Note on test suite
+Test suite is located in directory `chess_engine_core/tests`
+
 # Libraries
 + [SocketIO](https://github.com/miguelgrinberg/python-socketio)
 + Flask
